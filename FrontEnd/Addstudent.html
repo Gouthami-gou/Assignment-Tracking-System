@@ -1,0 +1,190 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        .input {
+            border: none;
+            border-bottom: 2px solid violet;
+            border-radius: 0px;
+            background: transparent;
+            color: black;
+        }
+
+        .input:focus {
+            border-bottom: 2px solid rgb(255, 109, 145);
+            color: black;
+            background: transparent;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+        }
+
+        label {
+            color: black;
+            font-weight: bolder;
+        }
+    </style>
+    <script>
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+        function addStudent() {
+            const htno = document.getElementById("htno").value;
+            const fullname = document.getElementById("fullname").value;
+            const gender = document.getElementById("male").checked ? "Male" : "Female";
+            const phone = document.getElementById("phone").value;
+            const emailid = document.getElementById("emailid").value;
+            const password = Math.floor((Math.random() * 100) + 1);
+            const branch = document.getElementById("branch").value;
+            const dob = document.getElementById("dob").value;
+            const year = document.getElementById("year").value;
+            const address = document.getElementById("address").value;
+            const image = document.getElementById("image").files;
+            if (image.length > 0) {
+                var imageToLoad = image[0];
+                var imageReader = new FileReader();
+                imageReader.onload = function (fileLoadedEvent) {
+                    const imagepath = fileLoadedEvent.target.result;
+                    const addPromise = performAjax(
+                        "POST", "http://localhost:8888/Student/addStudent",
+                        JSON.stringify({ htno, fullname, gender, phone, emailid, password, branch, dob, year, address, image: imagepath })
+                    );
+                    addPromise
+                        .then(isExist => {
+
+                            alert("Added Successfully");
+                            // cancel();
+                        })
+                        .catch(err => {
+                            alert(err.message);
+                        });
+                }
+                imageReader.readAsDataURL(imageToLoad);
+            }
+
+        }
+
+
+        function clears() {
+            event.preventDefault();
+            document.getElementById("htno").value = "";
+            document.getElementById("fullname").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("emailid").value = "";
+            document.getElementById("branch").value = "";
+            document.getElementById("address").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("subject").value = "";
+            document.getElementById("year").value = "";
+            document.getElementById("dob").value = "";
+
+        }
+        function cancel() {
+            window.location.href = "studentlogin";
+        }
+    </script>
+</head>
+
+<body style="background-color:transparent;background-image: url(slogin.jpg);"><br><br>
+    <div class="container-fluid">
+       
+            <center>
+                <h2><b style="color:rebeccapurple;">Student Registration</b></h2>
+            </center><br>
+            <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-2"><label>HallTicket No:</label>
+                    <input type="text" id="htno" class="form-control input" required>
+                </div>
+                <div class="col-sm-2"><label>FullName:</label>
+                    <input type="text" id="fullname" class="form-control input" required>
+                </div>
+                <div class="col-sm-2"><label>Email Id:</label>
+                    <input type="email" id="emailid" class="form-control input" required>
+                </div>
+                <div class="col-sm-3"></div>
+            </div><br>
+            <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-2"><label> Mobile No:</label>
+                    <input type="text" id="phone" class="form-control input" pattern=[6-9]{0-9}>
+                </div>
+                <div class="col-sm-2"><label>Date Of Birth:</label>
+                    <input type="date" id="dob" class="form-control input" required>
+                </div>
+                <div class="col-sm-2"><label>Gender</label><br>
+                    <input type="radio" name="gender" id="male"><b style="color: black;">Male</b>
+                    <input type="radio" name="gender" id="female"><b style="color: black;">Female</b>
+                </div>
+                <div class="col-sm-3"></div>
+            </div><br>
+            <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-2"><label>Branch:</label><br>
+                    <select class="form-control input" id="branch" required>
+                        <option value="select">--select--</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="EEE">EEE</option>
+                    </select> </div>
+                <div class="col-sm-2"><label>Year:</label><br>
+                    <select class="form-control input" id="year" required>
+                        <option value="select">--select--</option>
+                        <option value="1st">1st</option>
+                        <option value="2nd">2nd</option>
+                        <option value="3rd">3rd</option>
+                        <option value="4th">4th</option>
+
+                    </select> </div>
+                <div class="col-sm-2"><label>Address:</label>
+                    <textarea name="message" class="form-control input" style="height:38px;" id="address" required></textarea>
+                </div>
+                <div class="col-sm-3"></div>
+            </div><br>
+            <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-2"><label>Image:</label>
+                    <input type="file" id="image" class="form-control input" required>
+                </div>
+                <div class="col-sm-3"></div>
+            </div><br>
+            <div class="row">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-1">
+                    <button type="button" class="btn btn-primary" onclick="addStudent()">Submit</button>
+                </div>
+                <div class="col-sm-1">
+                    <button type="button" class="btn btn-primary" onclick="clears()">Clear</button>
+                </div>
+                <div class="col-sm-1">
+                    <button type="button" class="btn btn-primary" onclick="cancel()">Cancel</button>
+                </div>
+                <div class="col-sm-5"></div>
+            </div><br>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src='https://kit.fontawesome.com/a076d05399.js'></script>
+    <style>
+        .bgimg {
+            position: relative;
+        }
+
+        .bgimg .content {
+            position: absolute;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            /* background: linear-gradient(to bottom right, rgb(247, 247,247.5), rgb(238, 238,238.5)); */
+            width: 100%;
+            height: 100%;
+
+        }
+
+        .nav-item:hover {
+            border-top: 3px solid red;
+        }
+    </style>
+    <script>
+         const faculty = sessionStorage.getItem("faculty");
+   
+    function performAjax(httpMethod, url, params) {
+        const myPromise = new Promise((resolve, reject) => {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    resolve(this.responseText);
+
+                }
+                if (this.status == 500) {
+                    reject({ error: true, message: "ServerError" });
+                }
+                if (this.status == 404) {
+                    reject({ error: true, message: "Resource not found" });
+                }
+            };
+            xhttp.open(httpMethod, url, true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            params ? xhttp.send(params) : xhttp.send();
+        });
+        return myPromise;
+    }
+         function profile() {
+        document.body.style.backgroundColor = "transparent";
+
+        document.getElementById("faculty").value = faculty;
+        const promise = performAjax("GET", `http://localhost:8888/Faculty/facultyprofile?faculty=${faculty}`);
+        promise
+            .then((data) => {
+                const profile = JSON.parse(data);
+                profile.map(rec => {
+                   
+                    document.getElementById("image").src = rec.image;
+                });
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+
+
+    }
+
+    </script>
+</head>
+
+<body onload="profile()">
+    <div class="bgimg">
+        <img src="b1.jpg" style="width: 100%;height: 100%;">
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div style="text-align:center;margin-top: 25px;">
+                                <img src="" id="image" name="image" style="width:90px;height:100px;border-radius: 50px;">                        </div>
+                        </div>
+                   
+                        <div class="col-sm-8">
+                            <nav class=" navbar-inverse" style="background-color:transparent;margin: 20px;">
+                                <div class="navbar-header">
+                                    <button type="button" class="navbar-toggle" data-toggle="collapse"
+                                        data-target="#myNavbar" id="b">
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                    </button>
+                                    <a class="navbar-brand" href="#"></a>
+                                </div>
+                                <div class="collapse navbar-collapse" id="myNavbar" style="font-size:20px;">
+                                    <ul class="nav navbar-nav" role="tablist">
+                                        <li class="nav-item"><a class="nav-link" href="http://localhost:5555/facultyProfile" target="iframe" style="color:white;">Profile</a>
+                                        </li>
+                                        <li class="nav-item"><a class="nav-link" href="http://localhost:5555/facultyviewStudents" target="iframe" style="color:white;">Students</a>
+                                        </li>
+                                        <li class="nav-item"><a class="nav-link" href="http://localhost:5555/facultyAddAssignments"
+                                                target="iframe" style="color:white;">Add Assignment</a>
+                                        </li>
+                                       
+                                        <li class="nav-item"><a class="dropdown-toggle" data-toggle="dropdown" href="#"
+                                            style="color:white;">View <span class="caret"></span></a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="http://localhost:5555/facultyviewAssignments" target="iframe"><b>Assignments</b></a></li>
+                                            <li><a href="http://localhost:5555/facultyviewAnswers" target="iframe"><b>Student Answers</b></a></li>
+                                        </ul>
+                                    </li>
+                                        <li class="nav-item"><a class="nav-link" href="http://localhost:5555" style="color:white;">LogOut
+                                            </a>
+                                        </li>
+                                        <li><input type="hidden" id="faculty"></li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        </div>
+                </div>
+                <div class="container-fluid">
+                    <iframe src="" id="iframe" name="iframe"
+                        style="height:480px;width:100%;border:none;margin-left:5px;margin-top: 50px;"></iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

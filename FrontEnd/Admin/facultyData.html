@@ -1,0 +1,382 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        .title {
+            margin-left: 800px;
+            top: 50px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+
+        .tablecss {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            font-size: 15px;
+
+        }
+
+        .tablecss td,
+        .tablecss th {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        .tablecss tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+
+        .tablecss {
+            background-color: #ddd;
+
+        }
+
+        .tablecss th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: center;
+            background-color: lavender;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+        function enableAdd() {
+            event.preventDefault();
+            document.getElementById('myModal').style.display = 'block';
+            document.getElementById("add").style.display = 'block';
+            document.getElementById("btnupdate").style.display = 'none';
+            document.getElementById("name").focus();
+        }
+
+        function LoadData() {
+            document.body.style.backgroundColor = "transparent";
+            const getdata = performAjax("GET", "http://localhost:8888/Admin/viewFaculty");
+            getdata
+                .then((details) => {
+                    showData(details);
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+
+
+        function showData(records) {
+            const facultydata = JSON.parse(records);
+            const tableHeaderString = '<tr><th>S.No</th><th>Faculty Id</th><th>Full Name</th><th>Gender</th><th>Phone No</th><th>Email Id</th><th>Branch</th><th>Subject</th><th>Year</th><th>Designation</th><th>Address</th><th>Photo</th><th>Action</th></tr>';
+            let tableRowString = '';
+            facultydata.map((faculty, index) => {
+                let edit = `<i id="${faculty._id}" class="fa fa-pencil-square-o fa-2px" style="color:blue" onclick="editRecords(event)" data-toggle="modal" data-target="#myModal" aria-hidden="true" ></i>`;
+                let del = `<i id="${faculty._id}" class="fa fa-trash fa-2px" aria-hidden="true" style="color:red;font:size:20%" onclick="deleteRecord(event)"></i>`;
+                let download = `<i id="${faculty._id}" onclick="download(event)"  style="color:blue" class="fa fa-download fa-2px" aria-hidden="true"></i>`;
+
+                tableRowString += `<tr><td>${index + 1}</td><td>${faculty.faculty}</td><td>${faculty.fullname}</td><td>${faculty.gender}</td><td>${faculty.phone}</td><td>${faculty.emailid}</td><td>${faculty.branch}</td><td>${faculty.subject}</td><td>${faculty.year}</td><td>${faculty.designation}</td><td>${faculty.address}</td><td><img src="${faculty.image}" style="width:80px;height:70px"></td>
+                        <td>${edit}&nbsp;${del}&nbsp;${download}</td></tr>`;
+            });
+            const tableString = `<table border="1">${tableHeaderString}${tableRowString}</table>`;
+
+            document.getElementById('table').innerHTML = tableString;
+        }
+        function download(event) {
+            event.preventDefault();
+            const getPromise = performAjax("GET", `http://localhost:8888/Admin/facultydownload/${event.target.id}`);
+            getPromise
+                .then(data => {
+                    [data].map(editRecord => {
+                        window.open(JSON.parse(editRecord).image);
+                    })
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
+
+        }
+        function editRecords(event) {
+            event.preventDefault();
+            const getPromise = performAjax("GET", `http://localhost:8888/Admin/getFacultyData/${event.target.id}`);
+            getPromise
+                .then(datas => {
+                    const get = JSON.parse(datas);
+
+                    get.map(editRecord => {
+
+                        document.getElementById("id").value = editRecord._id;
+                        document.getElementById("faculty").value = editRecord.faculty;
+                        document.getElementById("fullname").value = editRecord.fullname;
+                        editRecord.gender === 'Male' ? document.getElementById("male").checked = true : document.getElementById("female").checked = true;
+                        document.getElementById("phone").value = editRecord.phone;
+                        document.getElementById("emailid").value = editRecord.emailid;
+                        document.getElementById("branch").value = editRecord.branch;
+                        document.getElementById("subject").value = editRecord.subject;
+                        document.getElementById("year").value = editRecord.year;
+                        document.getElementById("designation").value = editRecord.designation;
+                        document.getElementById("address").value = editRecord.address;
+                        document.getElementById("image").src = editRecord.image;
+
+                    });
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+        function updateStudent() {
+            const id = document.getElementById("id").value;
+            document.getElementById("fullname").focus();
+            const faculty = document.getElementById("faculty").value;
+            const fullname = document.getElementById("fullname").value;
+            const gender = document.getElementById("male").checked ? "Male" : "Female";
+            const phone = document.getElementById("phone").value;
+            const emailid = document.getElementById("emailid").value;
+            const branch = document.getElementById("branch").value;
+            const subject = document.getElementById("subject").value;
+            const year = document.getElementById("year").value;
+            const designation = document.getElementById("designation").value;
+            const address = document.getElementById("address").value;
+            const image = document.getElementById("file").files;
+            if (image.length > 0) {
+                var imageToLoad = image[0];
+                var imageReader = new FileReader();
+                imageReader.onload = function (fileLoadedEvent) {
+                    const imagepath = fileLoadedEvent.target.result;
+                    const getOrgPromise = performAjax(
+                        "PUT",
+                        `http://localhost:8888/Admin/UpdateFacultyData/${id}`,
+                        JSON.stringify({
+                            fullname,gender, phone, emailid, branch,subject,year,
+                            designation,address, image: imagepath
+                        })
+                    );
+                    getOrgPromise
+                        .then((OrgPromise) => {
+                            LoadData();
+                            alert(' Successfully Updated');
+                            cancel();
+                        })
+                        .catch(err => {
+                            alert(err.message);
+                        })
+                }
+                imageReader.readAsDataURL(imageToLoad);
+            }
+            else {
+                const getOrgPromise = performAjax(
+                    "PUT",
+                    `http://localhost:8888/Admin/UpdateFacultyData/${id}`,
+                    JSON.stringify({ fullname,gender, phone, emailid,branch,subject,year,designation,address })
+                );
+                getOrgPromise
+                    .then((OrgPromise) => {
+                        LoadData();
+                        alert(' Successfully Updated');
+                    })
+                    .catch(err => {
+                        alert(err.message);
+                    })
+            }
+
+        }
+
+        function cancel() {
+            event.preventDefault();
+            document.getElementById("fullname").value = "";
+            document.getElementById("emailid").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("branch").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("subject").value = "";
+            document.getElementById("year").value = "";
+            document.getElementById("designation").value = "";
+            document.getElementById("address").value = "";
+
+        }
+
+        function deleteRecord(event) {
+            const deletePromise = performAjax("DELETE", `http://localhost:8888/Admin/deleteFaculty/${event.target.id}`);
+            deletePromise
+                .then((remainingData) => {
+                    LoadData();
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+
+    </script>
+</head>
+
+<body onload="LoadData()"><br>
+    
+        <div class="title">
+            <h3><a href="http://localhost:5555/addfaculty" style="text-decoration: none;font-weight:20;color:white" 
+                    data-target="model" data-toggle="#myModal" >Add Faculty</a>
+            </h3>
+        </div>
+        <div>
+
+            <center>
+                <table id="table" border="1" class="tablecss"></table>
+            </center>
+            <div class="">
+            </div>
+            <div class="container">
+                <div class="modal fade " id="myModal" role="dialog" >
+                    <div class="modal-dialog modal-dialog-centered model-lg">
+                        <div class="modal-content" style="background-color: rgb(255, 250, 238)">
+                            <div class="modal-header" style="background-color: lightcoral">
+                                <div class="modal-title">
+                                    <button type="button" class="close" data-dismiss="modal">&times</button></div>
+                                <center>
+                                    <h2>Faculty</h2>
+                                </center>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-sm-1"> <input type="hidden" placeholder="" id="id" name="id"
+                                            class="form-control">
+                                    </div>
+                                    <div class="col-sm-2">
+                                    </div>
+                                    <div class="col-sm-2"><label>Faculty</label></div>
+                                     <div class="col-sm-3"><input type="text" placeholder="Faculty id" id="faculty" class="form-control" disabled>
+
+                                    </div>
+                                    <div class="col-sm-4"></div>
+                                </div><br>
+                                <div class="row">
+                                    <div class="col-sm-1"></div>
+                                    <div class="col-sm-2"><label>Full Name:</label></div>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="Name" id="fullname" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2"><label>Gender:</label></div>
+                                    <div class="col-sm-3">
+                                        <input type="radio" name="gender" id="male" value="male">Male
+                                        <input type="radio" name="gender" id="female" value="female">Female
+                                    </div>
+
+
+                                    <div class="col-sm-1"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col-sm-1"></div>
+                                    <div class="col-sm-2"><label> Email id:</label></div>
+                                    <div class="col-sm-3">
+                                        <input type="email" placeholder="Email id" id="emailid" class="form-control">
+                                    </div>
+                                    <div class="col-sm-2"><label> Mobile No:</label></div>
+                                    <div class="col-sm-3">
+                                        <input type="number" placeholder="Phone No" id="phone" class="form-control">
+                                    </div>
+
+                                    <div class="col-sm-1"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col-sm-1"></div>
+                                   
+                                    <div class="col-sm-2"><label>Branch:</label></div>
+                                    <div class="col-sm-3">
+                                        <select class="form-control" id="branch">
+                                            <option value="select">--select--</option>
+                                            <option value="CSE">CSE</option>
+                                            <option value="ECE">ECE</option>
+                                            <option value="EEE">EEE</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-2"><label> Subject:</label></div>
+                                    <div class="col-sm-3">
+                                        <input type="text" placeholder="subject" id="subject" class="form-control">
+                                    </div>
+
+                                    <div class="col-sm-1"></div>
+                                </div><br>
+                                <div class="row">
+                                        <div class="col-sm-1"></div>
+                                       
+                                        <div class="col-sm-2"><label>Year:</label></div>
+                                        <div class="col-sm-3">
+                                                <select class="form-control" id="year">
+                                                        <option value="select">--select--</option>
+                                                        <option value="1st">1st</option>
+                                                        <option value="2nd">2nd</option>
+                                                        <option value="3rd">3rd</option>
+                                                        <option value="4th">4th</option>
+                                
+                                                    </select> 
+                                        </div>
+                                        <div class="col-sm-2"><label> Designation:</label></div>
+                                        <div class="col-sm-3">
+                                            <input type="text" placeholder="designation" id="designation" class="form-control">
+                                        </div>
+    
+                                        <div class="col-sm-1"></div>
+                                    </div><br>
+
+                                <div class="row">
+                                    <div class="col-sm-1"></div>
+                                    <div class="col-sm-2"><label>Address:</label></div>
+                                    <div class="col-sm-2">
+                                        <textarea name="message" class="form-control" id="address"
+                                            style="height:38px;"></textarea>
+                                    </div>
+                                    <div class="col-sm-3" id="imagediv"><img src="" id="image"
+                                            style="width:100px;height:100px;border-radius:50px">
+                                    </div>
+                                    <div class="col-sm-3"><label>Image:</label>
+                                        <input type="file" id="file" class=""></div>
+
+                                    <div class="col-sm-1"></div>
+                                </div><br>
+
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <div class="col-sm-5"></div>
+                                        <div class="col-sm-4">
+                                            <button id="btnupdate" class="btn btn-success"
+                                                onclick="updateStudent()" data-dismiss="modal" >Update</button>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <button id="cancel" class="btn btn-danger"
+                                                onclick="cancel()">Cancel</button>
+
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+</html>

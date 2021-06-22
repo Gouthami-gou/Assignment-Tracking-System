@@ -1,0 +1,212 @@
+<html>
+
+<head>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+
+
+    <style>
+        .input {
+            border: none;
+            border-bottom: 2px solid #E5E7E9;
+            border-radius: 0px;
+            background: transparent;
+            color: white;
+        }
+
+        .input:focus {
+            border-bottom: 2px solid rgb(255, 109, 145);
+            color: red;
+            background: transparent;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+        }
+
+        label {
+            color: white;
+        }
+    </style>
+    <script>
+        const id = sessionStorage.getItem("studentid");
+        const htno = sessionStorage.getItem("htno");
+        const fullname = sessionStorage.getItem("fullname");
+        const assignment = sessionStorage.getItem("assignment");
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+        function LoadData() {
+            document.getElementById("htno").value = htno;
+            document.getElementById("fullname").value = fullname;
+
+            const getPromise = performAjax("GET", `http://localhost:8888/Student/getSubjects`);
+            getPromise
+                .then((details) => {
+                    getSubjects(details);
+
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+
+        function getSubjects(subject) {
+            let name = document.getElementById("subject");
+            const get = JSON.parse(subject);
+            ;
+            for (let i = 0; i < get.length; i++) {
+
+                const getuni = document.createElement("OPTION");
+                getuni.innerHTML = get[i].subject;
+                getuni.value = get[i].subject;
+                name.options.add(getuni);
+            }
+            const options = []
+
+            document.querySelectorAll('#subject > option').forEach((option) => {
+                if (options.includes(option.value)) option.remove()
+                else options.push(option.value)
+            })
+
+        }
+        function ac(value) {
+            const subject = document.getElementById("subject").value;
+            const getPromise = performAjax("GET", `http://localhost:8888/Student/getAssignments?subject=${subject}`);
+            getPromise
+                .then((details) => {
+                    const data = JSON.parse(details);
+                    data.map(rec => {
+                        let question = document.getElementById("assignment").value = rec.assignment;
+                        var select = document.getElementById("assignment");
+                        var length = select.options.length;
+                        for (i = 0; i < length; i++) {
+                            select.options[i] = null;
+                        }
+                        for (let i = 0; i < data.length; i++) {
+                            var opt = new Option(data[i].assignment);
+
+                            $("#assignment").append(opt);
+                        }
+                        const options = []
+                        document.querySelectorAll('#assignment > option').forEach((option) => {
+                            if (options.includes(option.value)) option.remove()
+                            else options.push(option.value)
+                        })
+
+                    })
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+
+
+        }
+        function giveTest() {
+            const htno = document.getElementById("htno").value;
+            const fullname = document.getElementById("fullname").value;
+            const subject = document.getElementById("subject").value;
+            const assignment = document.getElementById("assignment").value;
+            const answer = document.getElementById("answer").value;
+            const marks = "";
+
+            const addPromise = performAjax(
+                "POST", "http://localhost:8888/Student/giveTest",
+                JSON.stringify({ htno, fullname, subject, assignment, answer, marks })
+            );
+            addPromise
+                .then(isExist => {
+
+                    alert("Your Answer was Submitted");
+                    // cancel();
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
+        }
+
+    </script>
+
+</head>
+
+<body onload="LoadData()" style="background-color:transparent"><br>
+    <div class="container-fluid">
+        <center>
+            <h2><b style="color: white;">Test</b></h2>
+        </center><br>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2"><label>HallTicket No:</label>
+                <input type="text" id="htno" class="form-control input">
+            </div>
+            <div class="col-sm-2"><label>FullName:</label>
+                <input type="text" id="fullname" class="form-control input">
+            </div>
+
+            <div class="col-sm-4"></div>
+        </div><br>
+
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2"><label>Subject:</label>
+                <select id="subject" class="form-control input" onchange="ac(this.value)">
+                    <option value="">--Select--</option>
+
+                </select>
+            </div>
+            <div class="col-sm-2"><label>Question:</label>
+                <select id="assignment" class="form-control input">
+                    <option value="">--Select--</option>
+
+                </select>
+            </div>
+            <div class="col-sm-4"></div>
+        </div><br>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2"><label>Answer:</label><br>
+                <textarea name="answer" id="answer" class="form-control input" style="color:white"></textarea>
+
+                <input type="hidden" id="marks">
+
+            </div>
+            <div class="col-sm-4"></div>
+        </div><br>
+
+        <div class="row">
+            <div class="col-sm-5"></div>
+            <div class="col-sm-2">
+                <button type="button" class="btn btn-Success" onclick="giveTest()">Submit</button>
+            </div>
+            <div class="col-sm-5"></div>
+        </div><br>
+
+    </div>
+</body>
+
+</html>

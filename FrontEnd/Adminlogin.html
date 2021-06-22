@@ -1,0 +1,123 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src='https://kit.fontawesome.com/a076d05399.js'></script>
+    <style>
+        .inputWithIcon input[type="text"],
+        [type="password"] {
+            padding-left: 40px;
+            border-radius: 20px;
+        }
+
+        .inputWithIcon {
+            position: relative;
+        }
+
+        .inputWithIcon i {
+            position: absolute;
+            left: 0;
+            top: 3px;
+            padding: 9px 8px;
+            color: #aaa;
+            transition: 0.3s;
+
+        }
+    </style>
+    <script>
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+        function adminLogin() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const getPromise = performAjax("GET", `http://localhost:8888/Admin?username=${username}&password=${password}`);
+            getPromise
+                .then(obj => {
+                    if (obj === []) {
+                        alert("login failed");
+                    }
+                    else {
+                        window.location.href = "adminhome";
+                    }
+
+                })
+        }
+    </script>
+</head>
+
+<body style="background-image:linear-gradient(pink,cyan);background-color: transparent;"><br><br>
+    <h1><a href="http://localhost:5555" style="text-decoration: none;color:red">Back</a></h1>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-3"
+                style="box-shadow: 2px 2px 4px 4px gray;border-radius: 10px;background-image: url(l3.jpg);"><br>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8">
+                        <center>
+                            <h3 style="color:white"><b>Admin Login</b></h3><br>
+                        </center>
+                        <div class="inputWithIcon">
+                            <input type="text" placeholder="username" id="username" class="form-control" required>
+                            <i class="fa fa-user fa-lg fa-fw" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="col-sm-2"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8">
+                        <div class="inputWithIcon">
+                            <input type="password" placeholder="password" id="password" class="form-control" required>
+                            <i class="fa fa-lock fa-lg fa-fw" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="col-sm-2"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-4"></div>
+                    <div class="col-sm-4">
+                        <div class="inputWithIcon">
+                            <button type="button" class="btn btn-success" style="width:100%;"
+                                onclick="adminLogin()"><b>Login</b></button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-7">
+                      
+                    </div>
+                </div><br><br>
+            </div>
+            <div class="col-sm-5"></div>
+        </div>
+    </div>
+
+</body>
+
+</html>

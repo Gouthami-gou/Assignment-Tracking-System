@@ -1,0 +1,189 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<style>
+    label {
+        color: white;
+        font-size: 18px;
+    }
+    .input {
+            border: none;
+            border-bottom: 2px solid #E5E7E9;
+            border-radius: 0px;
+            background: transparent;
+            color: white;
+        }
+        .input:focus {
+            border-bottom: 2px solid rgb(255, 109, 145);
+            color: white;
+            background: transparent;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+        }
+</style>
+<script>
+    const faculty = sessionStorage.getItem("faculty");
+    const id = sessionStorage.getItem("facultyid");
+    const fullname = sessionStorage.getItem("fullname");
+
+    function performAjax(httpMethod, url, params) {
+        const myPromise = new Promise((resolve, reject) => {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    resolve(this.responseText);
+
+                }
+                if (this.status == 500) {
+                    reject({ error: true, message: "ServerError" });
+                }
+                if (this.status == 404) {
+                    reject({ error: true, message: "Resource not found" });
+                }
+            };
+            xhttp.open(httpMethod, url, true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            params ? xhttp.send(params) : xhttp.send();
+        });
+        return myPromise;
+    }
+    function profile() {
+        document.body.style.backgroundColor = "transparent";
+
+        document.getElementById("faculty").value = faculty;
+        const promise = performAjax("GET", `http://localhost:8888/Faculty/facultyprofile?faculty=${faculty}`);
+        promise
+            .then((data) => {
+                const profile = JSON.parse(data);
+                profile.map(rec => {
+                    document.getElementById("fullname").value = rec.fullname;
+                    document.getElementById("faculty").value = rec.faculty;
+                    document.getElementById("subject").value = rec.subject;
+                    document.getElementById("phone").value = rec.phone;
+                    document.getElementById("emailid").value = rec.emailid;
+                    document.getElementById("gender").value = rec.gender;
+                    document.getElementById("branch").value = rec.branch;
+                    document.getElementById("year").value = rec.year;
+                    document.getElementById("designation").value = rec.designation;
+                    document.getElementById("address").value = rec.address;
+                    document.getElementById("image").src = rec.image;
+                });
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+
+
+    }
+
+    function updateProjectIncharge() {
+        const phone = document.getElementById("phone").value;
+        const emailid = document.getElementById("emailid").value;
+        const address = document.getElementById("address").value;
+        const promise = performAjax("PUT", `http://localhost:8888/Faculty/updateFaculty/${id}`,
+            JSON.stringify({ emailid, phone, address })
+        );
+        promise
+            .then((OrgPromise) => {
+
+                alert(' Successfully Updated');
+            })
+            .catch(err => {
+                alert(err.message);
+            })
+
+    }
+
+</script>
+
+<body onload="profile()">
+
+        <h2 style="color:white">
+            <center><strong>My Profile</strong></center>
+        </h2><br>
+
+        <div class="row">
+            <div class="col-sm-2">
+                <img name="image" id="image" alt="photo" style="width:150px;height:200px;border-radius:50px"> </div>
+            <div class="col-sm-10">
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-3">
+                            <label>Faculty:</label>
+                                <input type="text" id="faculty" class="form-control input">
+                               
+                    </div>
+                    <div class="col-sm-3">
+                            <label>Full Name:</label>
+                            <input type="text" id="fullname" class="form-control input">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Gender:</label><br>
+                        <input type="text" id="gender" class="form-control input">
+                </div>
+                    <div class="col-sm-2"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-3">
+                          <label>Year:</label>
+                          <select id="year" class="form-control input">
+                                <option value="select">--select--</option>
+                                <option value="1st">1st</option>
+                                <option value="2nd">2nd</option>
+                                <option value="3rd">3rd</option>
+                                
+                                <option value="4th">4th</option>                         
+                             </select>
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Branch:</label><br>
+                        <input type="text" id="branch" class="form-control input">
+                </div>
+                    <div class="col-sm-3"><label> Mobile No:</label>
+                        <input type="text" id="phone" class="form-control input" >
+                    </div>
+                   
+                    <div class="col-sm-2"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-3"><label>Email Id:</label>
+                        <input type="email" id="emailid" class="form-control input">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Subject:</label>
+                              <input type="text" id="subject" class="form-control input" >
+                         
+                  </div>
+                  <div class="col-sm-3"><label> Designation:</label>
+                      <input type="text" id="designation" class="form-control input">
+                  </div>
+                   
+                    <div class="col-sm-2"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-4"></div>
+                   
+                    <div class="col-sm-4"><label>Address:</label>
+                        <textarea name="message" id="address" class="form-control input" style="height:38px;"></textarea>
+                    </div>
+                    <div class="col-sm-4"></div>
+                </div><br>
+                <div class="row">
+                    <div class="col-sm-5"></div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-success" onclick="updateFaculty()">Update</button>
+                    </div>
+                    <div class="col-sm-5"></div>
+                </div><br>
+            </div>
+        </div>
+
+
+</body>

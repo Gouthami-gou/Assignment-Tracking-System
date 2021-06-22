@@ -1,0 +1,121 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        .input {
+            border: none;
+            border-bottom: 2px solid #E5E7E9;
+            border-radius: 0px;
+            background: transparent;
+            color: white;
+        }
+
+        .input:focus {
+            border-bottom: 2px solid rgb(255, 109, 145);
+            color: white;
+            background: transparent;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+        }
+        label {
+            color: white;
+        }
+    </style>
+    <script>
+        const faculty = sessionStorage.getItem("faculty");
+        const subject = sessionStorage.getItem("subject");
+
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+
+        function loaddata() {
+            document.getElementById("faculty").value = faculty;
+            document.getElementById("subject").value = subject;
+        }
+        function addAssignment() {
+            const faculty = document.getElementById("faculty").value;
+            const subject = document.getElementById("subject").value;
+            const assignment = document.getElementById("assignment").value;
+            const addPromise = performAjax(
+                        "POST", "http://localhost:8888/Faculty/addAssignment",
+                        JSON.stringify({ faculty, subject, assignment })
+                    );
+                    addPromise
+                        .then(isExist => {
+
+                            alert("Added Successfully");
+                            // cancel();
+                        })
+                        .catch(err => {
+                            alert(err.message);
+                        });
+        }
+    </script>
+</head>
+
+<body onload="loaddata()" style="background-color:transparent"><br>
+    <div class="container-fluid">
+        <center>
+            <h2><b style="color: white;">Add Assignment</b></h2>
+        </center><br>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4"><label>Faculty Id</label>
+                <input type="text" id="faculty" class="form-control input" required>
+
+            </div>
+            <div class="col-sm-4"></div>
+        </div><br>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4"><label>Subject</label>
+                <input type="text" id="subject" class="form-control input" required>
+
+            </div>
+            <div class="col-sm-4"></div>
+        </div><br>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4"><label>Question:</label>
+                <input type="text" id="assignment" class="form-control input" required>
+            </div>
+            <div class="col-sm-4"></div>
+        </div><br>
+
+        <div class="row">
+            <div class="col-sm-5"></div>
+            <div class="col-sm-2">
+                <button type="button" class="btn btn-success" onclick="addAssignment()">Add</button>
+            </div>
+            <div class="col-sm-5"></div>
+        </div><br>
+
+    </div>
+</body>
+
+</html>

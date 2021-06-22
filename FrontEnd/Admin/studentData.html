@@ -1,0 +1,283 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        /* .title {
+            margin-left: 800px;
+            top: 50px;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        } */
+
+        .tablecss {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            font-size: 15px;
+
+        }
+
+        .tablecss td,
+        .tablecss th {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        .tablecss tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+
+        .tablecss {
+            background-color: #ddd;
+
+        }
+
+        .tablecss th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: center;
+            background-color: lavender;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function performAjax(httpMethod, url, params) {
+            const myPromise = new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        resolve(this.responseText);
+                    }
+                    if (this.status == 500) {
+                        reject({ error: true, message: "ServerError" });
+                    }
+                    if (this.status == 404) {
+                        reject({ error: true, message: "Resource not found" });
+                    }
+                };
+                xhttp.open(httpMethod, url, true);
+                xhttp.setRequestHeader("Content-Type", "application/json");
+                params ? xhttp.send(params) : xhttp.send();
+            });
+            return myPromise;
+        }
+        function enableAdd() {
+            event.preventDefault();
+            document.getElementById('myModal').style.display = 'block';
+            document.getElementById("add").style.display = 'block';
+            document.getElementById("btnupdate").style.display = 'none';
+            document.getElementById("name").focus();
+        }
+
+        function LoadData() {
+            document.body.style.backgroundColor = "transparent";
+            const getdata = performAjax("GET", "http://localhost:8888/Admin/adminviewStudent");
+            getdata
+                .then((details) => {
+                    showData(details);
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+
+
+        function showData(records) {
+            const studentdata = JSON.parse(records);
+            const tableHeaderString = '<tr><th>S.No</th><th>HallTicket No.</th><th>Full Name</th><th>Gender</th><th>DOB</th><th>Phone No</th><th>Email Id</th><th>Branch</th><th>Year</th><th>Address</th><th>Photo</th><th>Action</th></tr>';
+            let tableRowString = '';
+            studentdata.map((student, index) => {
+                // let edit = `<i id="${student._id}" class="fa fa-pencil-square-o fa-2px" style="color:blue" onclick="editRecords(event)" data-toggle="modal" data-target="#myModal" aria-hidden="true" ></i>`;
+                let del = `<i id="${student._id}" class="fa fa-trash fa-2px" aria-hidden="true" style="color:red;font:size:20%" onclick="deleteRecord(event)"></i>`;
+                let download = `<i id="${student._id}" onclick="download(event)"  style="color:blue" class="fa fa-download fa-2px" aria-hidden="true"></i>`;
+
+                tableRowString += `<tr><td>${index + 1}</td><td>${student.htno}</td><td>${student.fullname}</td><td>${student.gender}</td><td>${student.dob}</td><td>${student.phone}</td><td>${student.emailid}</td><td>${student.branch}</td><td>${student.year}</td><td>${student.address}</td><td><img src="${student.image}" style="width:80px;height:70px"></td>
+                        <td>${download}&nbsp;${del}</td></tr>`;
+            });
+            const tableString = `<table border="1">${tableHeaderString}${tableRowString}</table>`;
+
+            document.getElementById('table').innerHTML = tableString;
+        }
+        function download(event) {
+            event.preventDefault();
+            const getPromise = performAjax("GET", `http://localhost:8888/Faculty/studentdownload/${event.target.id}`);
+            getPromise
+                .then(data => {
+                    [data].map(editRecord => {
+                        window.open(JSON.parse(editRecord).image);
+                    })
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
+
+        }
+        
+        function cancel() {
+            event.preventDefault();
+            document.getElementById("fullname").value = "";
+            document.getElementById("emailid").value = "";
+            document.getElementById("dob").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("branch").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("year").value = "";
+
+            document.getElementById("address").value = "";
+
+        }
+
+        function deleteRecord(event) {
+            const deletePromise = performAjax("DELETE", `http://localhost:8888/Admin/deleteStudent/${event.target.id}`);
+            deletePromise
+                .then((remainingData) => {
+                    LoadData();
+                })
+                .catch(err => {
+                    alert(err.message);
+                })
+        }
+
+    </script>
+</head>
+
+<body onload="LoadData()"><br>
+    
+        
+        <div>
+
+            <center>
+                <table id="table" border="1" class="tablecss"></table>
+            </center>
+            <div class="">
+            </div>
+            <div class="container">
+                <div class="modal fade " id="myModal" role="dialog" >
+                    <div class="modal-dialog modal-dialog-centered model-lg">
+                        <div class="modal-content" style="background-color: rgb(255, 250, 238)">
+                            <div class="modal-header" style="background-color: lightcoral">
+                                <div class="modal-title">
+                                    <button type="button" class="close" data-dismiss="modal">&times</button></div>
+                                <center>
+                                    <h2>Student</h2>
+                                </center>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class=" col col-sm-1"> <input type="hidden" placeholder="" id="id" name="id"
+                                            class="form-control">
+                                    </div>
+                                    <div class="col col-sm-2">
+                                    </div>
+                                    <div class="col col-sm-2"><label>Student Id</label></div>
+                                     <div class="col col-sm-3"><input type="text" placeholder="hallticketno." id="htno" class="form-control" disabled>
+
+                                    </div>
+                                    <div class="col col-sm-4"></div>
+                                </div><br>
+                                <div class="row">
+                                    <div class="col col-sm-1"></div>
+                                    <div class="col col-sm-2"><label>Full Name:</label></div>
+                                    <div class="col col-sm-3">
+                                        <input type="text" placeholder="Name" id="fullname" class="form-control">
+                                    </div>
+                                    <div class="col col-sm-2"><label>Gender:</label></div>
+                                    <div class="col col-sm-3">
+                                        <input type="radio" name="gender" id="male" value="male">Male
+                                        <input type="radio" name="gender" id="female" value="female">Female
+                                    </div>
+
+
+                                    <div class="col col-sm-1"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col col-sm-1"></div>
+                                    <div class="col col-sm-2"><label>DOB:</label></div>
+                                    <div class="col col-sm-3">
+                                        <input type="date" placeholder="" id="dob" class="form-control">
+                                    </div>
+                                    <div class="col col-sm-2"><label> Mobile No:</label></div>
+                                    <div class="col col-sm-3">
+                                        <input type="number" placeholder="Phone No" id="phone" class="form-control">
+                                    </div>
+
+                                    <div class="col col-sm-1"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col col-sm-1"></div>
+                                    <div class="col col-sm-2"><label> Email id:</label></div>
+                                    <div class="col col-sm-3">
+                                        <input type="email" placeholder="Email id" id="emailid" class="form-control">
+                                    </div>
+                                    <div class="col col-sm-2"><label>Branch:</label></div>
+                                    <div class="col col-sm-3">
+                                        <select class="form-control" id="branch">
+                                            <option>--select--</option>
+                                            <option>CSE</option>
+                                            <option>ECE</option>
+                                            <option>EEE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col col-sm-1"></div>
+                                </div><br>
+
+                                <div class="row">
+                                    <div class="col col-sm-1"></div>
+                                    <div class="col col-sm-1"><label>Year:</label></div>
+                                    <div class="col col-sm-1">
+                                            <select class="form-control" id="year">
+                                                    <option value="select">--select--</option>
+                                                    <option value="1st">1st</option>
+                                                    <option value="2nd">2nd</option>
+                                                    <option value="3rd">3rd</option>
+                                                    <option value="4th">4th</option>
+
+                                                </select>  
+                                    </div>
+                                    <div class="col col-sm-2"><label>Address:</label></div>
+                                    <div class="col col-sm-2">
+                                        <textarea name="message" class="form-control" id="address"
+                                            style="height:38px;"></textarea>
+                                    </div>
+                                    <div class="col col-sm-2" id="imagediv"><img src="" id="image"
+                                            style="width:100px;height:100px;border-radius:50px">
+                                    </div>
+                                    <div class="col col-sm-2"><label>Image:</label>
+                                        <input type="file" id="file" class=""></div>
+
+                                    <div class="col col-sm-1"></div>
+                                </div><br>
+
+                                <div class="modal-footer">
+                                    <div class="row">
+                                        <div class="col col-sm-5"></div>
+                                        <div class="col col-sm-4">
+                                            <button id="btnupdate" class="btn btn-success"
+                                                onclick="updateStudent()" data-dismiss="modal" >Update</button>
+                                        </div>
+                                        <div class="col col-sm-3">
+                                            <button id="cancel" class="btn btn-danger"
+                                                onclick="cancel()">Cancel</button>
+
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+</html>

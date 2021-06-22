@@ -1,0 +1,18 @@
+{
+  "name": "projectname",
+  "version": "1.0.0",
+  "description": "Project Name",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Kumara Swamy",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "path": "^0.12.7",
+    "tilesjs": "^1.0.1"
+  },
+  "devDependencies": {}
+}
